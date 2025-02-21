@@ -1,6 +1,11 @@
 from flask import Flask, request, jsonify
+import os
 
 app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return jsonify({"message": "Welcome to BFHL API!"}), 200
 
 @app.route('/bfhl', methods=['POST'])
 def handle_post():
@@ -8,17 +13,12 @@ def handle_post():
         data = request.get_json()
         full_name = data.get("full_name")
         dob = data.get("dob")  # Expected in ddmmyyyy format
-        numbers = []
-        alphabets = []
-        
-        for item in data.get("data", []):
-            if isinstance(item, str) and item.isalpha():
-                alphabets.append(item)
-            elif isinstance(item, str) and item.isdigit():
-                numbers.append(item)
+
+        numbers = [item for item in data.get("data", []) if isinstance(item, str) and item.isdigit()]
+        alphabets = [item for item in data.get("data", []) if isinstance(item, str) and item.isalpha()]
         
         highest_alphabet = [max(alphabets, key=str.lower)] if alphabets else []
-        
+
         response = {
             "is_success": True,
             "user_id": f"{full_name}_{dob}",
@@ -37,4 +37,4 @@ def handle_get():
     return jsonify({"operation_code": "BFHL2024"}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)), debug=True)
